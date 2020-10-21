@@ -116,9 +116,9 @@ if (isset($_POST["saved"])) {
         <input type="text" maxlength="60" name="username" value="<?php safer_echo(get_username()); ?>"/>
         <!-- DO NOT PRELOAD PASSWORD-->
         <label for="pw">Password</label>
-        <input type="password" name="password"/>
+        <input type="password" name="password" minlength="4"/>
         <label for="cpw">Confirm Password</label>
-        <input type="password" name="confirm"/>
+        <input type="password" name="confirm" minlength="4"/>
         <input type="submit" name="saved" value="Save Profile"/>
     </form>
 <?php require(__DIR__ . "/partials/flash.php");
