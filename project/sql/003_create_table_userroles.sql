@@ -1,4 +1,4 @@
-REATE TABLE IF NOT EXISTS  `UserRoles`
+CREATE TABLE IF NOT EXISTS  `UserRoles`
 (
     `id`         int auto_increment not null,
     `user_id`    int,
