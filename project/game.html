@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+var canvas;
+var context;
+
+// Your score
+var score = 0;
+
+//Velocity
+var velocity = 'none';
+
+// Properties for your square
+var x = 150; // X position
+var y = 200; // Y position
+var speed = 2; // Distance to move each frame
+var sideLength = 50; // Length of each side of the square
+var body = [];
+
+// FLags to track which keys are pressed
+var down = false;
+var up = false;
+var right = false;
+var left = false;
+
+// Properties for the target square
+var targetX = 0;
+var targetY = 0;
+var targetLength = 50;
+// Determine if number a is within the range b to c (exclusive)
+function isWithin(a, b, c) {
+  return (a > b && a < c);
+}
+
+// max score
+var score_cap = 20;
+// track if hit bounds
+var collided = false;
+
+function attachKeyListeners(){
+// Listen for keydown events
+window.addEventListener('keydown', function(event) {
+  event.preventDefault();
+  console.log(event.key, event.keyCode);
+  if (event.keyCode === 40) { // DOWN
+    down = true;
+  }
+  if (event.keyCode === 38) { // UP
+    up = true;
+  }
+  if (event.keyCode === 37) { // LEFT
+    left = true;
+  }
+  if (event.keyCode === 39) { // RIGHT
+    right = true;
+  }
+});
+
+// Listen for keyup events
+window.addEventListener('keyup', function(event) {
+  event.preventDefault();
+  console.log(event.key, event.keyCode);
+  if (event.keyCode === 40) { // DOWN
+    down = false;
+  }
+  if (event.keyCode === 38) { // UP
+    up = false;
+  }
+  if (event.keyCode === 37) { // LEFT
+    left = false;
+  }
+  if (event.keyCode === 39) { // RIGHT
+    right = false;
+  }
+});
+}
+// Show the start menu
+function menu() {
+  erase();
+  context.fillStyle = '#000000';
+  context.font = '36px Arial';
+  context.textAlign = 'center';
+  context.fillText('Collect the Square!', canvas.width / 2, canvas.height / 4);
+  context.font = '24px Arial';
+  context.fillText('Click to Start', canvas.width / 2, canvas.height / 2);
+  context.font = '18px Arial'
+  context.fillText('Use the arrow keys to move', canvas.width / 2, (canvas.height / 4) * 3);
+  // Start the game on a click
+  canvas.addEventListener('click', startGame);
+}
+
+// Start the game
+function startGame() {
+	// Reduce the countdown timer ever second
+  // Stop listening for click events
+  canvas.removeEventListener('click', startGame);
+ for(let i = 1; i < score_cap; i++){
+	body[i] = 0;
+}
+  // Put the target at a random starting point
+	moveTarget();
+  // Kick off the draw loop
+  draw();
+}
+
+// Show the game over screen
+function endGame() {
+  // Display the final score
+  erase();
+  context.fillStyle = '#000000';
+  context.font = '24px Arial';
+  context.textAlign = 'center';
+  context.fillText('All Squares Collected!\n You win!', canvas.width / 2, canvas.height / 2);
+}
+
+function gameOver() {
+  // Display the final score
+  erase();
+  context.fillStyle = '#000000';
+  context.font = '24px Arial';
+  context.textAlign = 'center';
+  context.fillText('You lost\n Final Score: ' + score, canvas.width / 2, canvas.height / 2);
+}
+
+// Move the target square to a random position
+function moveTarget() {
+  targetX = Math.round(Math.random() * (canvas.width - targetLength));
+  targetY = Math.round(Math.random() * (canvas.height - targetLength))
+}
+
+// Clear the canvas
+function erase() {
+  context.fillStyle = '#FFFFFF';
+  context.fillRect(0, 0, 600, 400);
+}
+
+function init(){
+canvas = document.getElementById("board");
+    if (canvas.getContext) {
+        context = canvas.getContext("2d");
+	attachKeyListeners();
+	menu();
+	canvas.focus();
+	}
+}
+
+function movePlayer(){
+switch(velocity) {
+  case 'down':
+    y+= speed;
+    break;
+  case 'up':
+    y-= speed;
+    break;
+  case 'right':
+    x+= speed;
+    break;	
+  case 'left':
+    x-= speed;
+    break;
+  default:
+    break;
+} 
+}
+
+// The main draw loop
+function draw() {
+  erase();
+  speed = 2 + score/2; 
+  // Move the square
+  if (down) {
+    velocity = 'down';
+  }
+  if (up) {
+    velocity = 'up';
+  }
+  if (right) {
+    velocity = 'right';
+  }
+  if (left) {
+    velocity = 'left';
+  }
+ movePlayer();
+  // Keep the square within the bounds
+  if (y + sideLength > canvas.height) {
+    y = canvas.height - sideLength;
+    collided = true;
+  }
+  if (y < 0) {
+    y = 0;
+    collided = true;
+  }
+  if (x < 0) {
+    x = 0;
+    collided = true;
+  }
+  if (x + sideLength > canvas.width) {
+    x = canvas.width - sideLength;
+    collided = true;
+  }
+  // Collide with the target
+  if (isWithin(targetX, x, x + sideLength) || isWithin(targetX + targetLength, x, x + sideLength)) { // X
+    if (isWithin(targetY, y, y + sideLength) || isWithin(targetY + targetLength, y, y + sideLength)) { // Y
+      // Respawn the target
+      moveTarget();
+      // Increase the score
+      score++;
+    }
+  }
+  // Draw the square
+  context.fillStyle = '#FF0000';
+  context.fillRect(x, y, sideLength, sideLength);
+  // Draw the target 
+  context.fillStyle = '#00FF00';
+  context.fillRect(targetX, targetY, targetLength, targetLength);
+  // Draw the score and time remaining
+  context.fillStyle = '#000000';
+  context.font = '24px Arial';
+  context.textAlign = 'left';
+  context.fillText('Score: ' + score, 10, 24);
+  context.fillText('Speed: ' + speed, 10, 50);
+  context.fillText('Direction: ' + velocity,400,24);
+  // End the game or keep playing
+  if (score >= score_cap || collided != false) {
+    if(score >= score_cap){
+	endGame();
+	}
+    if(collided != false){
+	gameOver()
+	}
+  } else {
+    window.requestAnimationFrame(draw);
+  }
+}
+
+</script>
+</head>
+<body onload="init();">
+	<a href="http://bencentra.com/2017-07-11-basic-html5-canvas-games.html">Collection of Canvas based games by Ben Centra</a>
+	<main>
+		<canvas id="board" width="600px" height="400px" style="border: 1px solid black;">
+		
+		</canvas>
+	</main>
+</body>
+</html>
