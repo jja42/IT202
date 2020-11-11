@@ -74,7 +74,9 @@ if (isset($_POST["saved"])) {
         }
         $stmt = $db->prepare("UPDATE Scores set username= :username where user_id = :id");
         $r = $stmt->execute([":username" => $newUsername, ":id" => get_user_id()]);
-        //password is optional, so check if it's even set
+        $stmt = $db->prepare("UPDATE PointHistory set username= :username where user_id = :id");
+        $r = $stmt->execute([":username" => $newUsername, ":id" => get_user_id()]);
+	//password is optional, so check if it's even set
         //if so, then check if it's a valid reset request
         if (!empty($_POST["password"]) && !empty($_POST["confirm"])) {
             if ($_POST["password"] == $_POST["confirm"]) {
