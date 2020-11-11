@@ -18,23 +18,18 @@ if(isset($_POST["save"])){
 	//TODO add proper validation/checks
 	$name = $_POST["name"];
 	$score = $_POST["score"];
-	$create_t = date('Y-m-d H:i:s');//calc
+	$create_t = date('Y-m-d H:i:s');
+	$user = get_user_id();
 	$db = getDB();
 	if(isset($id)){
-		$result = [];
-		$stmt = $db->prepare("SELECT id FROM Users where username = :name");
-		$result = $stmt->execute([
-     	  	":name"=>$name]);
-		 $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        if($result){
-               $user = $result["id"];
-               $stmt = $db->prepare("UPDATE Scores set user_id=:user, score=:score, created=:create_t where id=:id");
-                $r = $stmt->execute([
-                        ":user"=>$user,
-                        ":score"=>$score,
-                        ":create_t"=>$create_t,
+		$stmt = $db->prepare("UPDATE Scores set user_id=:user, score=:score, created=:create_t, username=:name where id=:id");
+        $r = $stmt->execute([
+			":user"=>$user,
+			":score"=>$score,
+			":create_t"=>$create_t,
+			":name"=>$name,
 			":id"=>$id
-               ]);
+	]);
 		if($r){
 			flash("Updated successfully with id: " . $id);
 		}
@@ -43,7 +38,6 @@ if(isset($_POST["save"])){
 			flash("Error updating: " . var_export($e, true));
 		}
 		}
-	}
 	else{
 		flash("ID isn't set, we need an ID in order to update");
 	}
@@ -58,16 +52,12 @@ if(isset($id)){
 	$stmt = $db->prepare("SELECT * FROM Scores where id = :id");
 	$r = $stmt->execute([":id"=>$id]);
 	$result = $stmt->fetch(PDO::FETCH_ASSOC);
-	$stmt = $db->prepare("SELECT username FROM Users where id =:userid");
-	$userid = $result["user_id"];
-	$r = $stmt->execute([":userid"=>$userid]);
-	$username = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 ?>
 
 <form method="POST">
 	<label>Name</label>
-	<input name="name" placeholder="Name" value="<?php echo $username["username"];?>"/>
+	<input name="name" placeholder="Name" value="<?php echo $result["username"];?>"/>
 	<label>Score</label>
 	<input type="number" min="1" name="score" value="<?php echo $result["score"];?>" />
 	<input type="submit" name="save" value="Update"/>

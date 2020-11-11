@@ -15,6 +15,7 @@ require_once(__DIR__ . "/../lib/helpers.php");
         <li><a href="logout.php">Logout</a></li>
 	<li><a href="test_create_scores.php">Create</a></li>
 	<li><a href="test_edit_scores.php">Edit</a></li>
+    	<li><a href="test_list_scores.php">List</a></li>
     <?php endif; ?>
 </ul>
 </nav>

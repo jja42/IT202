@@ -20,33 +20,23 @@ if(isset($_POST["save"])){
 	//TODO add proper validation/checks
 	$name = $_POST["name"];
 	$score = $_POST["score"];
-	$create_t = date('Y-m-d H:i:s');//calc
+	$create_t = date('Y-m-d H:i:s');
+	$user = get_user_id();
 	$db = getDB();
-	$result = [];
-	$stmt = $db->prepare("SELECT id FROM Users where username = :name");
-	$result = $stmt->execute([
-	":name"=>$name]);
-	$result = $stmt->fetch(PDO::FETCH_ASSOC);
-	if($result){
-		$user = $result["id"];
-		//flash("ID :" . var_export($user,true));
-		$stmt = $db->prepare("INSERT INTO Scores (user_id,score,created) VALUES(:user, :score, :create_t)");
-		$r = $stmt->execute([
-			":user"=>$user,
-			":score"=>$score,
-			":create_t"=>$create_t
-		]);
-		if($r){
-			flash("Created successfully with id: " . $db->lastInsertId());
+	$stmt = $db->prepare("INSERT INTO Scores (user_id,score,created,username) VALUES(:user, :score, :create_t, :name)");
+	$r = $stmt->execute([
+		":user"=>$user,
+		":score"=>$score,
+		":create_t"=>$create_t,
+		":name"=>$name
+				]);
+	if($r){
+		flash("Created successfully with id: " . $db->lastInsertId());
 		}
-		else{
-			$e = $stmt->errorInfo();
-			flash("Error creating: " . var_export($e, true));
-		}
-	}
 	else{
-		flash("Invalid Username");
-	}
+		$e = $stmt->errorInfo();
+		flash("Error creating: " . var_export($e, true));
+		}
 }
 ?>
 <?php require(__DIR__ . "/partials/flash.php");
