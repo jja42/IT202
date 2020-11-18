@@ -113,8 +113,8 @@ if (isset($_POST["saved"])) {
 
 ?>
     <div>
-    <div>Score:</div>
-    <div><?php safer_echo(get_score()); ?></div>
+    <div>Points:</div>
+    <div><?php safer_echo(get_points()); ?></div>
     </div>
 	<form method="POST">
         <label for="email">Email</label>
