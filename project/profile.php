@@ -112,8 +112,11 @@ if (isset($_POST["saved"])) {
 
 
 ?>
-
-    <form method="POST">
+    <div>
+    <div>Score:</div>
+    <div><?php safer_echo(get_score()); ?></div>
+    </div>
+	<form method="POST">
         <label for="email">Email</label>
         <input type="email" name="email" value="<?php safer_echo(get_email()); ?>"/>
         <label for="username">Username</label>

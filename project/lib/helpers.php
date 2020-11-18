@@ -39,6 +39,13 @@ function get_user_id() {
     return -1;
 }
 
+function get_score(){
+if (is_logged_in() && isset($_SESSION["user"]["score"])) {
+        return $_SESSION["user"]["score"];
+    }
+    return -1;
+}
+
 function safer_echo($var) {
     if (!isset($var)) {
         echo "";
