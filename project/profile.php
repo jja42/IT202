@@ -8,8 +8,16 @@ if (!is_logged_in()) {
     flash("You must be logged in to access this page");
     die(header("Location: login.php"));
 }
-
 $db = getDB();
+$results = [];
+$stmt = $db->prepare("SELECT score, created FROM Scores WHERE user_id = :id ORDER BY created DESC LIMIT 10");
+$r = $stmt->execute([":id" => get_user_id()]);
+ if ($r) {
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    else {
+        flash("There was a problem fetching your scores " . var_export($stmt->errorInfo(), true));
+    }
 //save data if we submitted the form
 if (isset($_POST["saved"])) {
     $isValid = true;
@@ -53,7 +61,7 @@ if (isset($_POST["saved"])) {
             catch (Exception $e) {
 
             }
-        }
+ }
         if ($inUse > 0) {
             flash("Username already in use");
             //for now we can just stop the rest of the update
@@ -76,7 +84,7 @@ if (isset($_POST["saved"])) {
         $r = $stmt->execute([":username" => $newUsername, ":id" => get_user_id()]);
         $stmt = $db->prepare("UPDATE PointHistory set username= :username where user_id = :id");
         $r = $stmt->execute([":username" => $newUsername, ":id" => get_user_id()]);
-	//password is optional, so check if it's even set
+        //password is optional, so check if it's even set
         //if so, then check if it's a valid reset request
         if (!empty($_POST["password"]) && !empty($_POST["confirm"])) {
             if ($_POST["password"] == $_POST["confirm"]) {
@@ -94,7 +102,7 @@ if (isset($_POST["saved"])) {
             }
         }
 //fetch/select fresh data in case anything changed
-        $stmt = $db->prepare("SELECT email, username from Users WHERE id = :id LIMIT 1");
+ $stmt = $db->prepare("SELECT email, username from Users WHERE id = :id LIMIT 1");
         $stmt->execute([":id" => get_user_id()]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($result) {
@@ -115,8 +123,30 @@ if (isset($_POST["saved"])) {
     <div>
     <div>Points:</div>
     <div><?php safer_echo(get_points()); ?></div>
+ <p></p>
+    <div> Recent Scores</div>
+     <?php if (isset($results) && !empty($results)): ?>
+	<div class = "results">
+<?php foreach ($results as $r): ?>
+        <div class="list-group-item">
+	<div>
+	<?php safer_echo("Score: "); ?>
+	<?php safer_echo($r["score"]); ?>
+	</div>
+	<div>
+	<?php safer_echo("Date: "); ?>
+	<?php safer_echo($r["created"]); ?>
+	<p></p>
+	</div>
+</div>
+<?php endforeach; ?>
+</div>
+	<?php else: ?>
+	<p>No Results To Display</p>
+<?php endif; ?>
+<p></p>
     </div>
-	<form method="POST">
+        <form method="POST">
         <label for="email">Email</label>
         <input type="email" name="email" value="<?php safer_echo(get_email()); ?>"/>
         <label for="username">Username</label>
