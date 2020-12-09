@@ -24,16 +24,22 @@ if (isset($_POST["join"])) {
                 $stmt = $db->prepare("INSERT INTO CompetitionParticipants (competition_id, user_id) VALUES(:cid, :uid)");
                 $r = $stmt->execute([":cid" => $_POST["cid"], ":uid" => get_user_id()]);
                 if ($r) {
-					$stmt = $db->prepare("SELECT participants FROM CompetitionParticipants where id = :cid");
+					$stmt = $db->prepare("SELECT participants, reward FROM Competitions where id = :cid");
 					$r = $stmt->execute([":cid" => $_POST["cid"]]);
 					$result = $stmt->fetch(PDO::FETCH_ASSOC);
-					$stmt = $db->prepare("UPDATE Competitions set participants =:participants where id = :cid");
-					$r = $stmt->execute(["participants" => $result[participants]+1,":cid" => $_POST["cid"]]);
-					
+					$reward = $result["reward"];
+					if($fee == 0){
+						$reward += 1;}
+					else{
+						$reward += ceil($fee*.5);
+					}
+					$stmt = $db->prepare("UPDATE Competitions set participants =:participants, reward =:reward where id = :cid");
+					$r = $stmt->execute([":participants" => $result[participants]+1, ":reward" => $reward, ":cid" => $_POST["cid"]]);
+
 					$point_change = $fee * -1;
 					$reason = "Tournament Fee";
 					$create_t = date('Y-m-d H:i:s');
-					
+
 					 $stmt = $db->prepare("INSERT INTO PointsHistory (user_id, username, points_change,reason,created) VALUES(:user, :name, :point_change, :reason,:create_t)");
 					$r = $stmt->execute([
 					":user" => get_user_id(),
@@ -42,7 +48,7 @@ if (isset($_POST["join"])) {
 					":reason" => $reason,
 					":create_t" => $create_t
 					]);
-					
+
 					$stmt = $db->prepare("SELECT points_change FROM PointsHistory WHERE user_id = :user");
 					$r = $stmt->execute([
 					":user" => get_user_id(),
@@ -58,7 +64,7 @@ if (isset($_POST["join"])) {
 					":user" => get_user_id(),
 					":points" => $points,
 					]);
-				
+
                     flash("Successfully join competition", "success");
                     die(header("Location: #"));
                 }
