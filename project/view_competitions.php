@@ -9,7 +9,10 @@ if (!is_logged_in()) {
 <?php
 $db = getDB();
 if (isset($_POST["join"])) {
-    $balance = getBalance();
+    $stmt = $db->prepare("SELECT points FROM Users where id = :id");
+	$r = $stmt->execute([":id" => get_user_id()]);
+	$points = $stmt->fetch(PDO::FETCH_ASSOC);
+    $balance = $points["points"];
     //prevent user from joining expired or paid out comps
     $stmt = $db->prepare("select fee from Competitions where id = :id && expires > current_timestamp && paid_out = 0");
     $r = $stmt->execute([":id" => $_POST["cid"]]);
@@ -21,6 +24,41 @@ if (isset($_POST["join"])) {
                 $stmt = $db->prepare("INSERT INTO CompetitionParticipants (competition_id, user_id) VALUES(:cid, :uid)");
                 $r = $stmt->execute([":cid" => $_POST["cid"], ":uid" => get_user_id()]);
                 if ($r) {
+					$stmt = $db->prepare("SELECT participants FROM CompetitionParticipants where id = :cid");
+					$r = $stmt->execute([":cid" => $_POST["cid"]]);
+					$result = $stmt->fetch(PDO::FETCH_ASSOC);
+					$stmt = $db->prepare("UPDATE Competitions set participants =:participants where id = :cid");
+					$r = $stmt->execute(["participants" => $result[participants]+1,":cid" => $_POST["cid"]]);
+					
+					$point_change = $fee * -1;
+					$reason = "Tournament Fee";
+					$create_t = date('Y-m-d H:i:s');
+					
+					 $stmt = $db->prepare("INSERT INTO PointsHistory (user_id, username, points_change,reason,created) VALUES(:user, :name, :point_change, :reason,:create_t)");
+					$r = $stmt->execute([
+					":user" => get_user_id(),
+					":name" => get_username(),
+					":point_change" => $point_change,
+					":reason" => $reason,
+					":create_t" => $create_t
+					]);
+					
+					$stmt = $db->prepare("SELECT points_change FROM PointsHistory WHERE user_id = :user");
+					$r = $stmt->execute([
+					":user" => get_user_id(),
+					]);
+					$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+					$points = 0;
+					foreach ($results as $r):
+					$points += $r["points_change"];
+					endforeach;
+
+					$stmt = $db->prepare("UPDATE Users set points=:points where id=:user");
+					$r = $stmt->execute([
+					":user" => get_user_id(),
+					":points" => $points,
+					]);
+				
                     flash("Successfully join competition", "success");
                     die(header("Location: #"));
                 }
@@ -71,6 +109,7 @@ else {
                             <div class="col">
 								Reward: 
                                 <?php safer_echo($r["reward"]); ?>
+                                <!--TODO show payout-->
                             </div>
                             <div class="col">
 								Expires: 
@@ -85,6 +124,7 @@ else {
                                     </form>
                                 <?php else: ?>
                                     Already Registered
+				<p> </p>
                                 <?php endif; ?>
                             </div>
                         </div>
