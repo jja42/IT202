@@ -17,8 +17,7 @@ require_once(__DIR__ . "/../lib/helpers.php");
     	<li><a href="test_list_scores.php">View Scores</a></li>
         <li><a href="test_create_pointhistory.php">Create Point Transaction</a></li>
         <li><a href="test_list_pointhistory.php">View Point Transactions</a></li>
-	<li><a href="leaderboard.php">Leaderboard</a></li>
-	<li><a href="game.php">Play</a></li>
+        <li><a href="create_competition.php">Create Competition</a></li>
     <?php endif; ?>
 </ul>
 </nav>
