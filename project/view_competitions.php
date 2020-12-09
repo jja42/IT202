@@ -37,7 +37,7 @@ if (isset($_POST["join"])) {
 					$r = $stmt->execute([":participants" => $result[participants]+1, ":reward" => $reward, ":cid" => $_POST["cid"]]);
 
 					$point_change = $fee * -1;
-					$reason = "Tournament Fee";
+					$reason = "Competition Fee";
 					$create_t = date('Y-m-d H:i:s');
 
 					 $stmt = $db->prepare("INSERT INTO PointsHistory (user_id, username, points_change,reason,created) VALUES(:user, :name, :point_change, :reason,:create_t)");

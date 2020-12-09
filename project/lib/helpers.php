@@ -35,6 +35,7 @@ function get_email() {
 function get_user_id() {
     if (is_logged_in() && isset($_SESSION["user"]["id"])) {
         return $_SESSION["user"]["id"];
+
     }
     return -1;
 }
@@ -68,26 +69,136 @@ function getMessages() {
     return array();
 }
 
-function poor_mans_cronjob(){
-	//change 0 here if you want to provide an initial delay
-	//otherwise it's instant
-	$next = isset($_SESSION["nextTime"])?$_SESSION["nextTime"]:0;
-	if(time() >= $next){
-		//rest of it is just reset and tracking logic
-		$runs = 1;
-		if(isset($_SESSION["runs"])){
-			$runs = (int)$_SESSION["runs"];
-		}
-		echo "weeee! we ran $runs times.";
-		$delay = 30;
-		if(isset($_SESSION["delay"])){
-			$delay = (int)$_SESSION['delay'];
-		}
-		$_SESSION["nextTime"] = time() + $delay;
-		$_SESSION["runs"] += 1;
-	}
-}
-poor_mans_cronjob();
+function calc_competitions(){
+                $i = 0;
+                $score_arr = array();
+                $user_arr = array();
+                $name_arr = array();
+        $next = isset($_SESSION["nextTime"])?$_SESSION["nextTime"]:0;
+        if(time() >= $next){
+                echo "Updating Competitions";
+                $delay = 10;
+                if(isset($_SESSION["delay"])){
+                        $delay = (int)$_SESSION['delay'];
+                }
+                $_SESSION["nextTime"] = time() + $delay;
+        //get all competitions
+        //filter by expired and not paid_out
+        $db = getDB();
+        $stmt = $db->prepare("SELECT * FROM Competitions where expires < current_timestamp AND paid_out = 0");
+                $r = $stmt->execute();
+                $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-//end flash
-?>
+        //check all competitions for participant count
+        //if low, set paid_out but do nothing
+        foreach ($results as $result){
+        if($result["participants"]<3){
+                 $stmt = $db->prepare("UPDATE Competitions set paid_out = :paid_out where id = :id");
+                $r = $stmt->execute([
+                        ":paid_out"=> 1,
+                        ":id"=>$result["id"]
+        ]);
+                }
+                //else, determine winners
+        //reference scores between competition start and end
+        //get users in competition
+                else{
+                $stmt = $db->prepare("SELECT user_id FROM CompetitionParticipants where competition_id = :cid");
+                $r = $stmt->execute([
+                        ":cid"=>$result["id"]
+        ]);
+                $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($users as $user){
+				//get user scores
+                $stmt = $db->prepare("SELECT score FROM Scores where created > :start AND created < :end AND user_id = :id");
+                $r = $stmt->execute([
+                        ":start"=>$result["created"],
+                        ":end"=>$result["expires"],
+                        ":id"=>$user["user_id"]
+        ]);
+        //sum them up
+        $sum = 0;
+        $scores = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($scores as $score){
+        $sum += $score["score"];
+        }
+        //save the scores and users
+        $score_arr[$i] = $sum;
+        $user_arr[$i] = $user["user_id"];
+        $i++;
+                }
+        //calc the top scores and users
+        $first_place = array_search(max($score_arr),$score_arr);
+        unset($score_arr[$first_place]);
+        $second_place = array_search(max($score_arr),$score_arr);
+        unset($score_arr[$second_place]);
+        $third_place = array_search(max($score_arr),$score_arr);
+        
+        //calculate payouts
+        $first_payout = ceil($result["reward"]*$result["first_place_per"]);
+        $second_payout = ceil($result["reward"]*$result["first_place_per"]);
+        $third_payout = ceil($result["reward"]*$result["first_place_per"]);
+        
+        //distribute payouts
+		$stmt = $db->prepare("SELECT username FROM Users where id = :id");
+		$r = $stmt->execute([
+        ":id" => $user_arr[$first_place],
+		]);  
+		$name = $stmt->fetch(PDO::FETCH_ASSOC);
+		$name_arr[$first_place] = $name["username"];
+		
+		$stmt = $db->prepare("SELECT username FROM Users where id = :id");
+		$r = $stmt->execute([
+        ":id" => $user_arr[$second_place],
+		]);  
+		$name = $stmt->fetch(PDO::FETCH_ASSOC);
+		$name_arr[$second_place] = $name["username"];
+		
+		$stmt = $db->prepare("SELECT username FROM Users where id = :id");
+		$r = $stmt->execute([
+        ":id" => $user_arr[$third_place],
+		]);  
+		$name = $stmt->fetch(PDO::FETCH_ASSOC);
+		$name_arr[$third_place] = $name["username"];
+		
+        $reason = "Competition Win 1st Place";
+        $stmt = $db->prepare("INSERT INTO PointsHistory (user_id, username, points_change,reason) VALUES(:user, :name, :point_change, :reason)");
+		$r = $stmt->execute([
+        ":user" => $user_arr[$first_place],
+        ":name" => $name_arr[$first_place],
+        ":point_change" => $first_payout,
+        ":reason" => $reason
+		]);
+		
+		$reason = "Competition Win 2nd Place";
+        $stmt = $db->prepare("INSERT INTO PointsHistory (user_id, username, points_change,reason) VALUES(:user, :name, :point_change, :reason)");
+		$r = $stmt->execute([
+        ":user" => $user_arr[$second_place],
+        ":name" => $name_arr[$second_place],
+        ":point_change" => $second_payout,
+        ":reason" => $reason
+		]);
+		
+		$reason = "Competition Win 3rd Place";
+        $stmt = $db->prepare("INSERT INTO PointsHistory (user_id, username, points_change,reason) VALUES(:user, :name, :point_change, :reason)");
+		$r = $stmt->execute([
+        ":user" => $user_arr[$third_place],
+        ":name" => $name_arr[$third_place],
+        ":point_change" => $third_payout,
+        ":reason" => $reason
+		]);   
+        //mark paid_out
+         $stmt = $db->prepare("UPDATE Competitions set paid_out = :paid_out where id = :id");
+                $r = $stmt->execute([
+                        ":paid_out"=> 1,
+                        ":id"=>$result["id"]
+        ]);
+                }
+
+        }
+        
+        
+        }
+}
+calc_competitions();
+

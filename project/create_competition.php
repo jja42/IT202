@@ -72,7 +72,7 @@ if (isset($_POST["name"])) {
         }
         $r = $stmt->execute($params);
         $point_change = $cost * -1;
-        $reason = "Tournament Creation";
+        $reason = "Competition Creation";
         $create_t = date('Y-m-d H:i:s');
         if ($r) {
             flash("Successfully created competition", "success");
