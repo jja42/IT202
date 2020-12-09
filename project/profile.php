@@ -18,6 +18,9 @@ $r = $stmt->execute([":id" => get_user_id()]);
     else {
         flash("There was a problem fetching your scores " . var_export($stmt->errorInfo(), true));
     }
+$stmt = $db->prepare("SELECT points FROM Users where id = :id");
+$r = $stmt->execute([":id" => get_user_id()]);
+$points = $stmt->fetch(PDO::FETCH_ASSOC);
 //save data if we submitted the form
 if (isset($_POST["saved"])) {
     $isValid = true;
@@ -122,7 +125,7 @@ if (isset($_POST["saved"])) {
 ?>
     <div>
     <div>Points:</div>
-    <div><?php safer_echo(get_points()); ?></div>
+    <div><?php safer_echo($points["points"]);?></div>
  <p></p>
     <div> Recent Scores</div>
      <?php if (isset($results) && !empty($results)): ?>

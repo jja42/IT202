@@ -15,4 +15,32 @@ $r = $stmt->execute([
         ":score" => $score,
         ":create_t" => $create_t
     ]);
+    
+$point_change = $score/10;
+$reason = "Scored in-game";
+$stmt = $db->prepare("INSERT INTO PointsHistory (user_id, username, points_change,reason,created) VALUES(:user, :name, :point_change, :reason,:create_t)");
+    $r = $stmt->execute([
+        ":user" => $user,
+        ":name" => $name,
+        ":point_change" => $point_change,
+        ":reason" => $reason,
+        ":create_t" => $create_t
+    ]);
+
+$stmt = $db->prepare("SELECT `points_change` FROM `PointsHistory` WHERE user_id = :user");
+    $r = $stmt->execute([
+        ":user" => $user,
+    ]);
+$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+var_export($results,false);
+$points = 0;
+foreach ($results as $r):
+$points += $r["points_change"];
+endforeach;
+
+$stmt = $db->prepare("UPDATE Users set points=:points where id=:user");
+$r = $stmt->execute([
+        ":user" => $user,
+        ":points" => $points,
+    ]);
 ?>
