@@ -77,7 +77,7 @@ function calc_competitions(){
         $next = isset($_SESSION["nextTime"])?$_SESSION["nextTime"]:0;
         if(time() >= $next){
                 echo "Updating Competitions";
-                $delay = 10;
+                $delay = 30;
                 if(isset($_SESSION["delay"])){
                         $delay = (int)$_SESSION['delay'];
                 }
@@ -96,7 +96,7 @@ function calc_competitions(){
                  $stmt = $db->prepare("UPDATE Competitions set paid_out = :paid_out where id = :id");
                 $r = $stmt->execute([
                         ":paid_out"=> 1,
-                        ":id"=>$result["id"]
+                        ":id"=>$r["id"]
         ]);
                 }
                 //else, determine winners
@@ -136,8 +136,8 @@ function calc_competitions(){
         
         //calculate payouts
         $first_payout = ceil($result["reward"]*$result["first_place_per"]);
-        $second_payout = ceil($result["reward"]*$result["first_place_per"]);
-        $third_payout = ceil($result["reward"]*$result["first_place_per"]);
+        $second_payout = ceil($result["reward"]*$result["second_place_per"]);
+        $third_payout = ceil($result["reward"]*$result["third_place_per"]);
         
         //distribute payouts
 		$stmt = $db->prepare("SELECT username FROM Users where id = :id");
@@ -161,31 +161,36 @@ function calc_competitions(){
 		$name = $stmt->fetch(PDO::FETCH_ASSOC);
 		$name_arr[$third_place] = $name["username"];
 		
+		$create_t = date('Y-m-d H:i:s');
+		
         $reason = "Competition Win 1st Place";
-        $stmt = $db->prepare("INSERT INTO PointsHistory (user_id, username, points_change,reason) VALUES(:user, :name, :point_change, :reason)");
+        $stmt = $db->prepare("INSERT INTO PointsHistory (user_id, username, points_change,reason,created) VALUES(:user, :name, :point_change, :reason,:create_t)");
 		$r = $stmt->execute([
         ":user" => $user_arr[$first_place],
         ":name" => $name_arr[$first_place],
         ":point_change" => $first_payout,
-        ":reason" => $reason
+        ":reason" => $reason,
+        ":create_t" => $create_t
 		]);
 		
 		$reason = "Competition Win 2nd Place";
-        $stmt = $db->prepare("INSERT INTO PointsHistory (user_id, username, points_change,reason) VALUES(:user, :name, :point_change, :reason)");
+        $stmt = $db->prepare("INSERT INTO PointsHistory (user_id, username, points_change,reason,created) VALUES(:user, :name, :point_change, :reason,:create_t)");
 		$r = $stmt->execute([
         ":user" => $user_arr[$second_place],
         ":name" => $name_arr[$second_place],
         ":point_change" => $second_payout,
-        ":reason" => $reason
+        ":reason" => $reason,
+        ":create_t" => $create_t
 		]);
 		
 		$reason = "Competition Win 3rd Place";
-        $stmt = $db->prepare("INSERT INTO PointsHistory (user_id, username, points_change,reason) VALUES(:user, :name, :point_change, :reason)");
+        $stmt = $db->prepare("INSERT INTO PointsHistory (user_id, username, points_change,reason,created) VALUES(:user, :name, :point_change, :reason,:create_t)");
 		$r = $stmt->execute([
         ":user" => $user_arr[$third_place],
         ":name" => $name_arr[$third_place],
         ":point_change" => $third_payout,
-        ":reason" => $reason
+        ":reason" => $reason,
+        ":create_t" => $create_t
 		]);   
         //mark paid_out
          $stmt = $db->prepare("UPDATE Competitions set paid_out = :paid_out where id = :id");
