@@ -13,10 +13,12 @@ require_once(__DIR__ . "/../lib/helpers.php");
     <?php if (is_logged_in()): ?>
         <li><a href="profile.php">Profile</a></li>
         <li><a href="logout.php">Logout</a></li>
+    <?php if(has_role("Admin")): ?>
 	<li><a href="test_create_scores.php">Create Scores</a></li>
     	<li><a href="test_list_scores.php">View Scores</a></li>
         <li><a href="test_create_pointhistory.php">Create Points</a></li>
         <li><a href="test_list_pointhistory.php">View Points</a></li>
+    <?php endif; ?>
         <li><a href="create_competition.php">Create Competition</a></li>
         <li><a href="view_competitions.php">View Competitions</a></li>
 	<li><a href="game.php">Play</a></li>
