@@ -19,11 +19,7 @@ $topscores = "";
 $results = [];
 $db = getDB();
 if (isset($_POST["lifetime"])) {
-<<<<<<< HEAD
     $stmt = $db->prepare("SELECT username, score, user_id, created FROM Scores ORDER BY score DESC LIMIT 10");
-=======
-    $stmt = $db->prepare("SELECT username, score, created FROM Scores ORDER BY score DESC LIMIT 10");
->>>>>>> 706f88c47110f0ef9e79561d97b3a6232d1dde64
     $r = $stmt->execute();
     if ($r) {
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -35,11 +31,7 @@ if (isset($_POST["lifetime"])) {
 }
 
 if (isset($_POST["weekly"])) {
-<<<<<<< HEAD
     $stmt = $db->prepare("SELECT username, score, user_id, created FROM Scores WHERE created BETWEEN :weekago AND :now ORDER BY score DESC LIMIT 10");
-=======
-    $stmt = $db->prepare("SELECT username, score, created FROM Scores WHERE created BETWEEN :weekago AND :now ORDER BY score DESC LIMIT 10");
->>>>>>> 706f88c47110f0ef9e79561d97b3a6232d1dde64
     $r = $stmt->execute([
 	":weekago" => $weekago,
         ":now" => $now
@@ -54,11 +46,7 @@ if (isset($_POST["weekly"])) {
 }
 
 if (isset($_POST["monthly"])) {
-<<<<<<< HEAD
      $stmt = $db->prepare("SELECT username, score, user_id, created FROM Scores WHERE created BETWEEN :monthago AND :now ORDER BY score DESC LIMIT 10");
-=======
-     $stmt = $db->prepare("SELECT username, score, created FROM Scores WHERE created BETWEEN :monthago AND :now ORDER BY score DESC LIMIT 10");
->>>>>>> 706f88c47110f0ef9e79561d97b3a6232d1dde64
     $r = $stmt->execute([
         ":monthago" => $monthago,
         ":now" => $now
@@ -92,13 +80,9 @@ if(!isset($_POST["lifetime"]) && !isset($_POST["monthly"]) && !isset($_POST["wee
 <div class="list-group-item">
         <div>
                         <?php safer_echo("User: "); ?>
-<<<<<<< HEAD
 			<div>
 						<a type="button" href="profile.php?id=<?php safer_echo($r["user_id"]); ?>"><?php safer_echo($r["username"]); ?></a>
 	</div>
-=======
-			<?php safer_echo($r["username"]); ?>
->>>>>>> 706f88c47110f0ef9e79561d97b3a6232d1dde64
 	</div>
 	<div>
                         <?php safer_echo("Score: "); ?>
