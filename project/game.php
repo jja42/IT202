@@ -1,4 +1,9 @@
 <?php require_once(__DIR__ . "/partials/nav.php"); ?>
+<?php
+    if (!is_logged_in()) {
+    echo "You must be logged in to save your score";
+}
+?>
 <!DOCTYPE html>
 <html lang="en-us">
   <head>
@@ -7,7 +12,6 @@
     <title>Unity WebGL Player | Car Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <?php require_once(__DIR__ . "/partials/nav.php"); ?>
     <script src="TemplateData/UnityProgress.js"></script>
     <script src="Build/UnityLoader.js"></script>
     <script>
