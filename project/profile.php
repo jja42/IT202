@@ -3,15 +3,21 @@
 //Note: we have this up here, so our update happens before our get/fetch
 //that way we'll fetch the updated data and have it correctly reflect on the form below
 //As an exercise swap these two and see how things change
-if (!is_logged_in()) {
+if (!is_logged_in() && !isset($_GET["id"])) {
     //this will redirect to login and kill the rest of this script (prevent it from executing)
     flash("You must be logged in to access this page");
     die(header("Location: login.php"));
 }
+if (isset($_GET["id"])) {
+    $id = $_GET["id"];
+}
+else{
+$id = get_user_id();
+}
 $db = getDB();
 $results = [];
 $stmt = $db->prepare("SELECT score, created FROM Scores WHERE user_id = :id ORDER BY created DESC LIMIT 10");
-$r = $stmt->execute([":id" => get_user_id()]);
+$r = $stmt->execute([":id" => $id]);
  if ($r) {
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -19,7 +25,7 @@ $r = $stmt->execute([":id" => get_user_id()]);
         flash("There was a problem fetching your scores " . var_export($stmt->errorInfo(), true));
     }
 $stmt = $db->prepare("SELECT points FROM Users where id = :id");
-$r = $stmt->execute([":id" => get_user_id()]);
+$r = $stmt->execute([":id" => $id]);
 $points = $stmt->fetch(PDO::FETCH_ASSOC);
 //save data if we submitted the form
 if (isset($_POST["saved"])) {
@@ -76,7 +82,7 @@ if (isset($_POST["saved"])) {
     }
     if ($isValid) {
         $stmt = $db->prepare("UPDATE Users set email = :email, username= :username where id = :id");
-        $r = $stmt->execute([":email" => $newEmail, ":username" => $newUsername, ":id" => get_user_id()]);
+        $r = $stmt->execute([":email" => $newEmail, ":username" => $newUsername, ":id" => $id]);
         if ($r) {
             flash("Updated profile");
         }
@@ -84,9 +90,9 @@ if (isset($_POST["saved"])) {
             flash("Error updating profile");
         }
         $stmt = $db->prepare("UPDATE Scores set username= :username where user_id = :id");
-        $r = $stmt->execute([":username" => $newUsername, ":id" => get_user_id()]);
+        $r = $stmt->execute([":username" => $newUsername, ":id" => $id]);
         $stmt = $db->prepare("UPDATE PointHistory set username= :username where user_id = :id");
-        $r = $stmt->execute([":username" => $newUsername, ":id" => get_user_id()]);
+        $r = $stmt->execute([":username" => $newUsername, ":id" => $id]);
         //password is optional, so check if it's even set
         //if so, then check if it's a valid reset request
         if (!empty($_POST["password"]) && !empty($_POST["confirm"])) {
@@ -95,7 +101,7 @@ if (isset($_POST["saved"])) {
                 $hash = password_hash($password, PASSWORD_BCRYPT);
                 //this one we'll do separate
                 $stmt = $db->prepare("UPDATE Users set password = :password where id = :id");
-                $r = $stmt->execute([":id" => get_user_id(), ":password" => $hash]);
+                $r = $stmt->execute([":id" => $id, ":password" => $hash]);
                 if ($r) {
                     flash("Reset Password");
                 }
@@ -106,7 +112,7 @@ if (isset($_POST["saved"])) {
         }
 //fetch/select fresh data in case anything changed
  $stmt = $db->prepare("SELECT email, username from Users WHERE id = :id LIMIT 1");
-        $stmt->execute([":id" => get_user_id()]);
+        $stmt->execute([":id" => $id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($result) {
             $email = $result["email"];
@@ -125,7 +131,11 @@ if (isset($_POST["saved"])) {
 ?>
     <div>
     <div>Points:</div>
+    <?php if (isset($points) && !empty($points)): ?>
     <div><?php safer_echo($points["points"]);?></div>
+    <?php else: ?>
+	<p>No Results To Display</p>
+<?php endif; ?>
  <p></p>
     <div> Recent Scores</div>
      <?php if (isset($results) && !empty($results)): ?>
