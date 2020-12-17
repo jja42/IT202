@@ -96,7 +96,7 @@ function calc_competitions(){
                  $stmt = $db->prepare("UPDATE Competitions set paid_out = :paid_out where id = :id");
                 $r = $stmt->execute([
                         ":paid_out"=> 1,
-                        ":id"=>$r["id"]
+                        ":id"=>$result["id"]
         ]);
                 }
                 //else, determine winners
