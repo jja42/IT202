@@ -14,17 +14,46 @@ if (isset($_GET["id"])) {
 else{
 $id = get_user_id();
 }
+$page = 1;
+$per_page = 10;
+if(isset($_GET["page"])){
+    try {
+        $page = (int)$_GET["page"];
+    }
+    catch(Exception $e){
+
+    }
+}
 $db = getDB();
 $results = [];
-$stmt = $db->prepare("SELECT score, created FROM Scores WHERE user_id = :id ORDER BY created DESC LIMIT 10");
-$r = $stmt->execute([":id" => $id]);
+if (isset($_GET["score"])) {
+$stmt = $db->prepare("SELECT count(*) as total from Scores where user_id = :id");
+$stmt->execute([":id"=>$id]);
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
+$total = 0;
+if($result){
+    $total = (int)$result["total"];
+}
+$total_pages = ceil($total / $per_page);
+$offset = ($page-1) * $per_page;
+
+$stmt = $db->prepare("SELECT score, created FROM Scores WHERE user_id = :id ORDER BY created DESC LIMIT :offset, :count");
+$stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
+$stmt->bindValue(":count", $per_page, PDO::PARAM_INT);
+$stmt->bindValue(":id", $id);
+$r = $stmt->execute();
  if ($r) {
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     else {
         flash("There was a problem fetching your scores " . var_export($stmt->errorInfo(), true));
     }
-$stmt = $db->prepare("SELECT points FROM Users where id = :id");
+}
+if (isset($_GET["comp"])) {
+
+}
+
+$stmt = $db->prepare("SELECT points, username FROM Users where id = :id");
 $r = $stmt->execute([":id" => $id]);
 $points = $stmt->fetch(PDO::FETCH_ASSOC);
 //save data if we submitted the form
@@ -130,6 +159,8 @@ if (isset($_POST["saved"])) {
 
 ?>
     <div>
+	<div></div> Username: <?php safer_echo($points["username"]);?></div>
+	
     <div>Points:</div>
     <?php if (isset($points) && !empty($points)): ?>
     <div><?php safer_echo($points["points"]);?></div>
@@ -137,6 +168,7 @@ if (isset($_POST["saved"])) {
 	<p>No Results To Display</p>
 <?php endif; ?>
  <p></p>
+ <?php if (isset($_GET["score"])):?>
     <div> Recent Scores</div>
      <?php if (isset($results) && !empty($results)): ?>
 	<div class = "results">
@@ -159,7 +191,30 @@ if (isset($_POST["saved"])) {
 <?php endif; ?>
 <p></p>
     </div>
-        <form method="POST">
+    
+    <nav aria-label="Scores">
+            <ul class="pagination justify-content-center">
+				<?php if (($page-1) > 0): ?>
+                <li class="page-item">
+                    <a class="page-link" href="?score&page=<?php echo $page-1;?>" tabindex="-1">Previous</a>
+                </li>
+                <?php endif; ?>
+                <?php if (($page+1) <= $total_pages): ?>
+                <li class="page-item">
+                    <a class="page-link" href="?score&page=<?php echo $page+1;?>">Next</a>
+                </li>
+                <?php endif; ?>
+            </ul>
+        </nav>
+<?php endif; ?>
+
+        <form method="GET">
+		<input type="submit" name="score" value="Scores"/>
+		<input type="submit" name="comp" value="Competition History"/>
+		<input type="submit" name="acc" value="Update Account Details"/>
+	</form>
+	<form method="POST">
+        <?php if (isset($_GET["acc"])): ?>
         <label for="email">Email</label>
         <input type="email" name="email" value="<?php safer_echo(get_email()); ?>"/>
         <label for="username">Username</label>
@@ -170,5 +225,6 @@ if (isset($_POST["saved"])) {
         <label for="cpw">Confirm Password</label>
         <input type="password" name="confirm" minlength="4"/>
         <input type="submit" name="saved" value="Save Profile"/>
+        <?php endif; ?>
     </form>
 <?php require(__DIR__ . "/partials/flash.php");
