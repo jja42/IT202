@@ -224,7 +224,6 @@ $private = 0;
  <p></p>
  <?php if (isset($_GET["score"])):?>
     <div> Recent Scores</div>
-<p> </p>
      <?php if (isset($results) && !empty($results)): ?>
 	<div class = "results">
 <?php foreach ($results as $r): ?>
@@ -251,12 +250,12 @@ $private = 0;
             <ul class="pagination justify-content-center">
 				<?php if (($page-1) > 0): ?>
                 <li class="page-item">
-                    <a class="page-link" href="?score&page=<?php echo $page-1;?>" tabindex="-1">Previous</a>
+                    <a class="page-link" href="?id=<?php safer_echo($id); ?>&score&page=<?php echo $page-1;?>" tabindex="-1">Previous</a>
                 </li>
                 <?php endif; ?>
                 <?php if (($page+1) <= $total_pages): ?>
                 <li class="page-item">
-                    <a class="page-link" href="?score&page=<?php echo $page+1;?>">Next</a>
+                    <a class="page-link" href="?id=<?php safer_echo($id); ?>&score&page=<?php echo $page+1;?>">Next</a>
                 </li>
                 <?php endif; ?>
             </ul>
@@ -307,12 +306,12 @@ $private = 0;
             <ul class="pagination justify-content-center">
 				<?php if (($page-1) > 0): ?>
                 <li class="page-item">
-                    <a class="page-link" href="?comp&page=<?php echo $page-1;?>" tabindex="-1">Previous</a>
+                    <a class="page-link" href="?id=<?php safer_echo($id); ?>&comp&page=<?php echo $page-1;?>" tabindex="-1">Previous</a>
                 </li>
                 <?php endif; ?>
                 <?php if (($page+1) <= $total_pages): ?>
                 <li class="page-item">
-                    <a class="page-link" href="?comp&page=<?php echo $page+1;?>">Next</a>
+                    <a class="page-link" href="?id=<?php safer_echo($id); ?>&comp&page=<?php echo $page+1;?>">Next</a>
                 </li>
                 <?php endif; ?>
             </ul>
