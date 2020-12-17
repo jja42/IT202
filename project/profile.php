@@ -59,7 +59,27 @@ $r = $stmt->execute();
     }
 }
 if (isset($_GET["comp"])) {
+$stmt = $db->prepare("SELECT count(*) as total from CompetitionParticipants where user_id = :id");
+$stmt->execute([":id"=>$id]);
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
+$total = 0;
+if($result){
+    $total = (int)$result["total"];
+}
+$total_pages = ceil($total / $per_page);
+$offset = ($page-1) * $per_page;
 
+$stmt = $db->prepare("SELECT * FROM Competitions JOIN CompetitionParticipants ON CompetitionParticipants.competition_id = Competitions.id WHERE CompetitionParticipants.user_id  = :id ORDER BY expires DESC LIMIT :offset, :count");
+$stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
+$stmt->bindValue(":count", $per_page, PDO::PARAM_INT);
+$stmt->bindValue(":id", $id);
+$r = $stmt->execute();
+if ($r) {
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+else {
+    flash("There was a problem looking up competitions: " . var_export($stmt->errorInfo(), true), "danger");
+}
 }
 
 $stmt = $db->prepare("SELECT points, username FROM Users where id = :id");
@@ -194,7 +214,7 @@ $private = 0;
 ?>
     <div>
 	<div></div> Username: <?php safer_echo($points["username"]);?></div>
-	
+	<p> </p>
     <div>Points:</div>
     <?php if (isset($points) && !empty($points)): ?>
     <div><?php safer_echo($points["points"]);?></div>
@@ -204,6 +224,7 @@ $private = 0;
  <p></p>
  <?php if (isset($_GET["score"])):?>
     <div> Recent Scores</div>
+<p> </p>
      <?php if (isset($results) && !empty($results)): ?>
 	<div class = "results">
 <?php foreach ($results as $r): ?>
@@ -242,11 +263,69 @@ $private = 0;
         </nav>
 <?php endif; ?>
 
+<?php if (isset($_GET["comp"])):?>
+    <div> Competitions </div>
+    <p> </p>
+     <?php if (isset($results) && !empty($results)): ?>
+	<div class = "results">
+<?php foreach ($results as $r): ?>
+        <div class="list-group-item">
+	<div class="row">
+                            <div class="col">
+								Name: 
+                                <?php safer_echo($r["name"]); ?>
+                            </div>
+                            <div class="col">
+								Participants: 
+                                <?php safer_echo($r["participants"]); ?>
+                            </div>
+                            <div class="col">
+								Required Score: 
+                                <?php safer_echo($r["min_score"]); ?>
+                            </div>
+                            <div class="col">
+								Reward: 
+                                <?php safer_echo($r["reward"]); ?>
+                                <!--TODO show payout-->
+                            </div>
+                            <div class="col">
+								Expires: 
+                                <?php safer_echo($r["expires"]); ?>
+                            </div>
+	<p></p>
+	</div>
+</div>
+<?php endforeach; ?>
+</div>
+	<?php else: ?>
+	<p>No Results To Display</p>
+<?php endif; ?>
+<p></p>
+    </div>
+    
+    <nav aria-label="Competitions">
+            <ul class="pagination justify-content-center">
+				<?php if (($page-1) > 0): ?>
+                <li class="page-item">
+                    <a class="page-link" href="?comp&page=<?php echo $page-1;?>" tabindex="-1">Previous</a>
+                </li>
+                <?php endif; ?>
+                <?php if (($page+1) <= $total_pages): ?>
+                <li class="page-item">
+                    <a class="page-link" href="?comp&page=<?php echo $page+1;?>">Next</a>
+                </li>
+                <?php endif; ?>
+            </ul>
+        </nav>
+<?php endif; ?>
+
         <form method="GET">
-		<input type="submit" name="score" value="Scores"/>
-		<input type="submit" name="comp" value="Competition History"/>
+		<a type="button" href="profile.php?id=<?php safer_echo($id); ?>&score">Scores</a>
+		<p> </p>
+		<a type="button" href="profile.php?id=<?php safer_echo($id); ?>&comp">Competition History</a>
 		<?php if($id == get_user_id()): ?>
-		<input type="submit" name="acc" value="Update Account Details"/>
+		<p> </p>
+		<a type="button" href="profile.php?id=<?php safer_echo($id); ?>&acc">Update Account Details</a>
 		<?php endif; ?>
 	</form>
 	<form method="POST">
