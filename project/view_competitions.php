@@ -7,6 +7,16 @@ if (!is_logged_in()) {
 }
 ?>
 <?php
+$page = 1;
+$per_page = 10;
+if(isset($_GET["page"])){
+    try {
+        $page = (int)$_GET["page"];
+    }
+    catch(Exception $e){
+
+    }
+}
 $db = getDB();
 if (isset($_POST["join"])) {
     $stmt = $db->prepare("SELECT points FROM Users where id = :id");
@@ -84,8 +94,21 @@ if (isset($_POST["join"])) {
         flash("Competition is unavailable", "warning");
     }
 }
-$stmt = $db->prepare("SELECT c.*, c_p.user_id as reg FROM Competitions c LEFT JOIN (SELECT * FROM CompetitionParticipants where user_id = :id) as c_p on c.id = c_p.competition_id WHERE c.expires > current_timestamp AND paid_out = 0 ORDER BY expires ASC LIMIT 10");
-$r = $stmt->execute([":id" => get_user_id(),]);
+
+$stmt = $db->prepare("SELECT count(*) as total from Competitions where expires > current_timestamp AND paid_out = 0");
+$stmt->execute([":id"=>get_user_id()]);
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
+$total = 0;
+if($result){
+    $total = (int)$result["total"];
+}
+$total_pages = ceil($total / $per_page);
+$offset = ($page-1) * $per_page;
+$stmt = $db->prepare("SELECT c.*, c_p.user_id as reg FROM Competitions c LEFT JOIN (SELECT * FROM CompetitionParticipants where user_id = :id) as c_p on c.id = c_p.competition_id WHERE c.expires > current_timestamp AND paid_out = 0 ORDER BY expires ASC LIMIT :offset, :count");
+$stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
+$stmt->bindValue(":count", $per_page, PDO::PARAM_INT);
+$stmt->bindValue(":id", get_user_id());
+$r = $stmt->execute();
 if ($r) {
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -142,6 +165,22 @@ else {
                 </div>
             <?php endif; ?>
         </div>
+    </div>
+    </div>
+        <nav aria-label="Competitions">
+            <ul class="pagination justify-content-center">
+				<?php if (($page-1) > 0): ?>
+                <li class="page-item">
+                    <a class="page-link" href="?page=<?php echo $page-1;?>" tabindex="-1">Previous</a>
+                </li>
+                <?php endif; ?>
+                <?php if (($page+1) <= $total_pages): ?>
+                <li class="page-item">
+                    <a class="page-link" href="?page=<?php echo $page+1;?>">Next</a>
+                </li>
+                <?php endif; ?>
+            </ul>
+        </nav>
     </div>
 
 <?php require(__DIR__ . "/partials/flash.php");
