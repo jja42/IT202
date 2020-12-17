@@ -140,6 +140,14 @@ $private = 0;
         //password is optional, so check if it's even set
         //if so, then check if it's a valid reset request
         if (!empty($_POST["password"]) && !empty($_POST["confirm"])) {
+            if(!empty($_POST["old_password"])){
+				$stmt = $db->prepare("SELECT password from Users WHERE id = :id LIMIT 1");
+				$params = array(":id" => get_user_id());
+				$r = $stmt->execute($params);
+				$result = $stmt->fetch(PDO::FETCH_ASSOC);
+				$password_hash_from_db = $result["password"];
+                $password = $_POST["old_password"];
+		if (password_verify($password, $password_hash_from_db)) {
             if ($_POST["password"] == $_POST["confirm"]) {
                 $password = $_POST["password"];
                 $hash = password_hash($password, PASSWORD_BCRYPT);
@@ -147,12 +155,23 @@ $private = 0;
                 $stmt = $db->prepare("UPDATE Users set password = :password where id = :id");
                 $r = $stmt->execute([":id" => $id, ":password" => $hash]);
                 if ($r) {
-                    flash("Reset Password");
+                    flash("Password Reset Successful");
                 }
                 else {
                     flash("Error resetting password");
                 }
-            }
+			}
+            else {
+                    flash("New Password Fields Must Match");
+                }
+			}
+		else {
+			flash("Incorrect Current Password");
+		}
+	}
+			else{
+				flash("You must enter your current password to reset your password");
+			}
         }
 //fetch/select fresh data in case anything changed
  $stmt = $db->prepare("SELECT email, username from Users WHERE id = :id LIMIT 1");
@@ -239,9 +258,11 @@ $private = 0;
         <label for="username">Username</label>
         <input type="text" maxlength="60" name="username" value="<?php safer_echo(get_username()); ?>"/>
         <!-- DO NOT PRELOAD PASSWORD-->
-        <label for="pw">Password</label>
+        <label for="pw">Current Password</label>
+        <input type="password" name="old_password" minlength="4"/>
+        <label for="pw">New Password</label>
         <input type="password" name="password" minlength="4"/>
-        <label for="cpw">Confirm Password</label>
+        <label for="cpw">Confirm New Password</label>
         <input type="password" name="confirm" minlength="4"/>
         <input type="submit" name="saved" value="Save Profile"/>
         <?php endif; ?>
