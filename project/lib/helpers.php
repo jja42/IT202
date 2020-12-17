@@ -83,26 +83,16 @@ function calc_competitions(){
                 }
                 $_SESSION["nextTime"] = time() + $delay;
         //get all competitions
-        //filter by expired and not paid_out
+        //filter by expired and not paid_out and filter out low participants
         $db = getDB();
-        $stmt = $db->prepare("SELECT * FROM Competitions where expires < current_timestamp AND paid_out = 0");
+        $stmt = $db->prepare("SELECT * FROM Competitions where expires < current_timestamp AND paid_out = 0 AND participants > 2");
                 $r = $stmt->execute();
                 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        //check all competitions for participant count
-        //if low, set paid_out but do nothing
-        foreach ($results as $result){
-        if($result["participants"]<3){
-                 $stmt = $db->prepare("UPDATE Competitions set paid_out = :paid_out where id = :id");
-                $r = $stmt->execute([
-                        ":paid_out"=> 1,
-                        ":id"=>$result["id"]
-        ]);
-                }
-                //else, determine winners
+                
+        //determine winners
         //reference scores between competition start and end
         //get users in competition
-                else{
+        if($results){
                 $stmt = $db->prepare("SELECT user_id FROM CompetitionParticipants where competition_id = :cid");
                 $r = $stmt->execute([
                         ":cid"=>$result["id"]
@@ -198,12 +188,11 @@ function calc_competitions(){
                         ":paid_out"=> 1,
                         ":id"=>$result["id"]
         ]);
-                }
 
         }
+	}
         
         
         }
-}
 calc_competitions();
 
