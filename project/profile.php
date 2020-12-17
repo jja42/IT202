@@ -25,6 +25,15 @@ if(isset($_GET["page"])){
     }
 }
 $db = getDB();
+if($id != get_user_id()){
+$stmt = $db->prepare("SELECT username,private FROM Users where id = :id");
+$stmt->execute([":id"=>$id]);
+$r = $stmt->fetch(PDO::FETCH_ASSOC);
+if((int)$r["private"] == 1){
+flash("You've been redirected! " . $r["username"] . " has a private profile.");
+die(header("Location: home.php"));
+}
+}
 $results = [];
 if (isset($_GET["score"])) {
 $stmt = $db->prepare("SELECT count(*) as total from Scores where user_id = :id");
@@ -58,6 +67,12 @@ $r = $stmt->execute([":id" => $id]);
 $points = $stmt->fetch(PDO::FETCH_ASSOC);
 //save data if we submitted the form
 if (isset($_POST["saved"])) {
+    if(isset($_POST["private"])){
+	$private = 1;
+}
+else{
+$private = 0;
+}
     $isValid = true;
     //check if our email changed
     $newEmail = get_email();
@@ -110,8 +125,8 @@ if (isset($_POST["saved"])) {
         }
     }
     if ($isValid) {
-        $stmt = $db->prepare("UPDATE Users set email = :email, username= :username where id = :id");
-        $r = $stmt->execute([":email" => $newEmail, ":username" => $newUsername, ":id" => $id]);
+        $stmt = $db->prepare("UPDATE Users set email = :email, username = :username, private = :private where id = :id");
+        $r = $stmt->execute([":email" => $newEmail, ":username" => $newUsername, ":private" => $private, ":id" => $id]);
         if ($r) {
             flash("Updated profile");
         }
@@ -211,11 +226,15 @@ if (isset($_POST["saved"])) {
         <form method="GET">
 		<input type="submit" name="score" value="Scores"/>
 		<input type="submit" name="comp" value="Competition History"/>
+		<?php if($id == get_user_id()): ?>
 		<input type="submit" name="acc" value="Update Account Details"/>
+		<?php endif; ?>
 	</form>
 	<form method="POST">
         <?php if (isset($_GET["acc"])): ?>
-        <label for="email">Email</label>
+        <label for="private">Private</label>
+	<input type="checkbox" name="private" value="Private">
+	<label for="email">Email</label>
         <input type="email" name="email" value="<?php safer_echo(get_email()); ?>"/>
         <label for="username">Username</label>
         <input type="text" maxlength="60" name="username" value="<?php safer_echo(get_username()); ?>"/>
