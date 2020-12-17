@@ -20,6 +20,7 @@ require_once(__DIR__ . "/../lib/helpers.php");
         <li><a href="create_competition.php">Create Competition</a></li>
         <li><a href="view_competitions.php">View Competitions</a></li>
 	<li><a href="game.php">Play</a></li>
+	<li><a href="leaderboard.php">Leaderboard</a></li>
     <?php endif; ?>
 </ul>
 </nav>
