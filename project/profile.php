@@ -155,7 +155,7 @@ $private = 0;
         }
         $stmt = $db->prepare("UPDATE Scores set username= :username where user_id = :id");
         $r = $stmt->execute([":username" => $newUsername, ":id" => $id]);
-        $stmt = $db->prepare("UPDATE PointHistory set username= :username where user_id = :id");
+        $stmt = $db->prepare("UPDATE PointsHistory set username= :username where user_id = :id");
         $r = $stmt->execute([":username" => $newUsername, ":id" => $id]);
         //password is optional, so check if it's even set
         //if so, then check if it's a valid reset request
