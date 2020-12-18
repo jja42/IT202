@@ -36,7 +36,7 @@ if (isset($_POST["search"]) && !empty($query)) {
                 <div class="list-group-item">
                     <div>
                         <div>Username:</div>
-                        <div><?php safer_echo($r["username"]); ?></div>
+                        <a type="button" href="profile.php?id=<?php safer_echo($r["user_id"]); ?>"><?php safer_echo($r["username"]); ?></a>
                     </div>
                     <div>
                         <div>Point Change:</div>

@@ -66,7 +66,7 @@ $name_arr[$i] = $name[0]["username"];
                             <div class="col">
 				#<?php safer_echo($i+1);?>
 								Username: 
-								<a type="button" href="profile.php?id=<?php safer_echo($id_arr[i]); ?>"><?php safer_echo($name_arr[$i]); ?></a>
+								<a type="button" href="profile.php?id=<?php safer_echo($id_arr[$i]); ?>"><?php safer_echo($name_arr[$i]); ?></a>
                             </div>
 				<div class="col">
                             Score: 

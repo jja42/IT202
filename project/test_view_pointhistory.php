@@ -36,7 +36,7 @@ if (isset($id)) {
         <div class="card-body">
             <div>
                 <div>DETAILS</div>
-                <div>UserName: <?php safer_echo($result["username"]); ?></div>
+                <div>UserName: <a type="button" href="profile.php?id=<?php safer_echo($result["user_id"]); ?>"><?php safer_echo($result["username"]); ?></a>
                 <div>Reason: <?php safer_echo($result["reason"]); ?></div>
                 <div>Point Change: <?php safer_echo($result["points_change"]); ?></div>
                 <div>User ID: <?php safer_echo($result["user_id"]); ?></div>
