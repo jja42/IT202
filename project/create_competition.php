@@ -84,12 +84,11 @@ if (isset($_POST["name"])) {
 			":reason" => $reason,
 			":create_t" => $create_t
 			]);
-			$stmt = $db->prepare("SELECT `points_change` FROM `PointsHistory` WHERE user_id = :user");
+			$stmt = $db->prepare("SELECT points_change FROM PointsHistory WHERE user_id = :user");
 			$r = $stmt->execute([
-			":user" => $user,
+			":user" => get_user_id(),
 			]);
 			$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-			var_export($results,false);
 			$points = 0;
 			foreach ($results as $r):
 			$points += $r["points_change"];
@@ -97,10 +96,9 @@ if (isset($_POST["name"])) {
 
 			$stmt = $db->prepare("UPDATE Users set points=:points where id=:user");
 			$r = $stmt->execute([
-			":user" => $user,
+			":user" => get_user_id(),
 			":points" => $points,
 			]);
-            die(header("Location: #"));
         }
         else {
             flash("There was a problem creating a competition: " . var_export($stmt->errorInfo(), true), "danger");
