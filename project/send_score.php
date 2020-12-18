@@ -4,7 +4,7 @@ $score = (int) $_POST["ScoreKey"];
 $user = get_user_id();
 $create_t = date('Y-m-d H:i:s');
 $db = getDB();
-$stmt  = $db->prepare("SELECT * from Scores where user_id = :q");
+$stmt  = $db->prepare("SELECT * from Users where id = :q");
 $r = $stmt->execute([":q"=>$user]);
 $result = $stmt->fetch(PDO::FETCH_ASSOC);
 $name = $result["username"];
