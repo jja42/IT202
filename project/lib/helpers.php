@@ -76,7 +76,6 @@ function calc_competitions(){
                 $name_arr = array();
         $next = isset($_SESSION["nextTime"])?$_SESSION["nextTime"]:0;
         if(time() >= $next){
-                echo "Updating Competitions";
                 $delay = 30;
                 if(isset($_SESSION["delay"])){
                         $delay = (int)$_SESSION['delay'];
