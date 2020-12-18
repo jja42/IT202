@@ -125,7 +125,7 @@ else {
                         <div class="row">
                             <div class="col">
 								Name: 
-                                <?php safer_echo($r["name"]); ?>
+                                <a type="button" href="competition_scoreboard.php?id=<?php safer_echo($r["id"]); ?>"><?php safer_echo($r["name"]); ?></a>
                             </div>
                             <div class="col">
 								Participants: 
