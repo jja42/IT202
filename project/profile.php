@@ -69,7 +69,7 @@ if($result){
 $total_pages = ceil($total / $per_page);
 $offset = ($page-1) * $per_page;
 
-$stmt = $db->prepare("SELECT * FROM Competitions JOIN CompetitionParticipants ON CompetitionParticipants.competition_id = Competitions.id WHERE CompetitionParticipants.user_id  = :id ORDER BY expires DESC LIMIT :offset, :count");
+$stmt = $db->prepare("SELECT c.*, c_p.competition_id FROM Competitions c JOIN (SELECT * FROM CompetitionParticipants where user_id =:id) as c_p ON c_p.competition_id = c.id WHERE c_p.user_id  = :id ORDER BY expires DESC LIMIT :offset, :count");
 $stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
 $stmt->bindValue(":count", $per_page, PDO::PARAM_INT);
 $stmt->bindValue(":id", $id);
@@ -272,7 +272,7 @@ $private = 0;
 	<div class="row">
                             <div class="col">
 								Name: 
-                                <?php safer_echo($r["name"]); ?>
+                                <a type="button" href="competition_scoreboard.php?id=<?php safer_echo($r["id"]); ?>"><?php safer_echo($r["name"]); ?></a>
                             </div>
                             <div class="col">
 								Participants: 

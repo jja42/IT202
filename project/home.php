@@ -80,9 +80,7 @@ if(!isset($_POST["lifetime"]) && !isset($_POST["monthly"]) && !isset($_POST["wee
 <div class="list-group-item">
         <div>
                         <?php safer_echo("User: "); ?>
-			<div>
 						<a type="button" href="profile.php?id=<?php safer_echo($r["user_id"]); ?>"><?php safer_echo($r["username"]); ?></a>
-	</div>
 	</div>
 	<div>
                         <?php safer_echo("Score: "); ?>
