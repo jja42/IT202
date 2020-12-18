@@ -35,6 +35,21 @@ if (isset($_POST["save"])) {
     ]);
     if ($r) {
         flash("Created successfully with id: " . $db->lastInsertId());
+	$stmt = $db->prepare("SELECT points_change FROM PointsHistory WHERE user_id = :user");
+					$r = $stmt->execute([
+					":user" => get_user_id(),
+					]);
+					$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+					$points = 0;
+					foreach ($results as $r):
+					$points += $r["points_change"];
+					endforeach;
+
+					$stmt = $db->prepare("UPDATE Users set points=:points where id=:user");
+					$r = $stmt->execute([
+					":user" => get_user_id(),
+					":points" => $points,
+					]);
     }
     else {
         $e = $stmt->errorInfo();
