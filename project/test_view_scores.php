@@ -30,8 +30,8 @@ if (isset($id)) {
     <div class="card">
         <div class="card-title">
             <div>User:</div>
-				<?php safer_echo($result["username"]); ?>
-				<p></p>
+			<a type="button" href="profile.php?id=<?php safer_echo($result["user_id"]); ?>"><?php safer_echo($result["username"]); ?></a>				
+			<p></p>
         </div>
         <div class="card-body">
             <div>
