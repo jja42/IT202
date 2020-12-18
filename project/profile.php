@@ -86,9 +86,9 @@ $stmt = $db->prepare("SELECT points_change FROM PointsHistory WHERE user_id = :u
 					$r = $stmt->execute([
 					":user" => get_user_id(),
 					]);
-					$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+					$point_r = $stmt->fetchAll(PDO::FETCH_ASSOC);
 					$points = 0;
-					foreach ($results as $r):
+					foreach ($point_r as $r):
 					$points += $r["points_change"];
 					endforeach;
 $stmt = $db->prepare("UPDATE Users set points=:points where id=:user");
